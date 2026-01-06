@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  alertmanager-teams-adapter:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-01-06T20:12:53.805889+02:00"
+    description: Helm chart for the Alertmanager Teams adapter
+    digest: de6aa0b51195e4068c411ac5ea8fba931ed7239ee62eca071a12f162d2bbfec9
+    name: alertmanager-teams-adapter
+    type: application
+    urls:
+    - https://vtarmo.github.io/alertmanager-teams-adapter/alertmanager-teams-adapter-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-01-06T20:12:53.805186+02:00"

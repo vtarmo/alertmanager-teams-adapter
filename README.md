@@ -43,6 +43,21 @@ helm upgrade --install alertmanager-teams-adapter \
   --set env.teamsWebhookUrl="https://outlook.office.com/webhook/..."
 ```
 
+Helm repo:
+
+```sh
+helm repo add alertmanager-teams-adapter https://vtarmo.github.io/alertmanager-teams-adapter
+helm repo update
+```
+
+Deploy from repo:
+
+```sh
+helm upgrade --install alertmanager-teams-adapter \
+  alertmanager-teams-adapter/alertmanager-teams-adapter \
+  --set env.teamsWebhookUrl="https://outlook.office.com/webhook/..."
+```
+
 Using an existing Secret or ConfigMap (key `TEAMS_WEBHOOK_URL`):
 
 ```sh
