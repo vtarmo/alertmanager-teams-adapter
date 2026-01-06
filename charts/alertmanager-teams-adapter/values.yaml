@@ -1,0 +1,32 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/vtarmo/alertmanager-teams-adapter
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+env:
+  teamsWebhookUrl: ""
+  requestTimeout: 10
+  # existing secret to hold webhook URL
+  existingSecret: ""
+  existingSecretKey: ""
+  # existing configmap to hold webhook URL
+  existingConfigMap: ""
+  existingConfigMapKey: ""
+
+podAnnotations: {}
+podLabels: {}
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+serviceAccount:
+  create: false
+  name: ""

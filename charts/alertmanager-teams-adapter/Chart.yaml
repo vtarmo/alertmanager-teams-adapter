@@ -1,0 +1,6 @@
+apiVersion: v2
+name: alertmanager-teams-adapter
+description: Helm chart for the Alertmanager Teams adapter
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

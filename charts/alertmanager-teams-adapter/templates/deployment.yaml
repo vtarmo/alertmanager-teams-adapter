@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "alertmanager-teams-adapter.fullname" . }}
+  labels:
+    {{- include "alertmanager-teams-adapter.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "alertmanager-teams-adapter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "alertmanager-teams-adapter.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "alertmanager-teams-adapter.serviceAccountName" . }}
+      containers:
+        - name: adapter
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+          env:
+            - name: TEAMS_WEBHOOK_URL
+              {{- if .Values.env.existingSecret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.existingSecret | quote }}
+                  key: {{ .Values.env.existingSecretKey | quote }}
+              {{- else if .Values.env.existingConfigMap }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.env.existingConfigMap | quote }}
+                  key: {{ .Values.env.existingConfigMapKey | quote }}
+              {{- else }}
+              value: {{ required "env.teamsWebhookUrl is required when no secret/configmap is provided" .Values.env.teamsWebhookUrl | quote }}
+              {{- end }}
+            - name: PORT
+              value: {{ .Values.service.port | quote }}
+            - name: REQUEST_TIMEOUT
+              value: {{ .Values.env.requestTimeout | quote }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

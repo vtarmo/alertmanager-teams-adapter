@@ -1,0 +1,6 @@
+1. Set the Teams webhook URL:
+   helm upgrade --install {{ .Release.Name }} {{ .Chart.Name }} \
+     --set env.teamsWebhookUrl="https://outlook.office.com/webhook/..."
+
+2. Check the service:
+   kubectl get svc {{ include "alertmanager-teams-adapter.fullname" . }}

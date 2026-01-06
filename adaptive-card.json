@@ -1,0 +1,64 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.5",
+        "msteams": {
+          "width": "Full"
+        },
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "@{coalesce(first(body('Parse_JSON')?['alerts'])?['annotations']?['summary'], first(body('Parse_JSON')?['alerts'])?['labels']?['alertname'], 'Alert')}",
+            "weight": "Bolder",
+            "size": "Large",
+            "wrap": true
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "Severity",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['labels']?['severity']}"
+              },
+              {
+                "title": "Rule",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['labels']?['alertname']}"
+              },
+              {
+                "title": "Namespace",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['labels']?['namespace']}"
+              },
+              {
+                "title": "Starts at",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['startsAt']}"
+              },
+              {
+                "title": "Value",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['annotations']?['value']}"
+              }
+            ]
+          },
+          {
+            "type": "TextBlock",
+            "text": "Summary: @{first(body('Parse_JSON')?['alerts'])?['annotations']?['description']}",
+            "wrap": true,
+            "spacing": "Medium"
+          }
+        ],
+        "actions": [
+          {
+            "type": "Action.OpenUrl",
+            "title": "Open Grafana",
+            "url": "@{coalesce(first(body('Parse_JSON')?['alerts'])?['annotations']?['dashboard_url'], first(body('Parse_JSON')?['alerts'])?['generatorURL'], body('Parse_JSON')?['externalURL'])}"
+          }
+        ]
+      }
+    }
+  ]
+}

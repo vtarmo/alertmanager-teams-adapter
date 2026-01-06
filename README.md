@@ -35,6 +35,31 @@ docker run --rm -p 8080:8080 \
   alertmanager-teams-adapter
 ```
 
+## Helm
+
+```sh
+helm upgrade --install alertmanager-teams-adapter \
+  charts/alertmanager-teams-adapter \
+  --set env.teamsWebhookUrl="https://outlook.office.com/webhook/..."
+```
+
+Using an existing Secret or ConfigMap (key `TEAMS_WEBHOOK_URL`):
+
+```sh
+helm upgrade --install alertmanager-teams-adapter \
+  charts/alertmanager-teams-adapter \
+  --set env.existingSecret=alertmanager-teams-adapter
+```
+
+Using a Secret with a custom key name:
+
+```sh
+helm upgrade --install alertmanager-teams-adapter \
+  charts/alertmanager-teams-adapter \
+  --set env.existingSecret=teams-workflow-webhook \
+  --set env.existingSecretKey=url
+```
+
 ## Alertmanager config example
 
 ```yaml
@@ -55,3 +80,88 @@ The adapter forwards the first alert in the Alertmanager payload. It uses:
   `annotations.value` as facts.
 - `annotations.dashboard_url`, then `generatorURL`, then `externalURL` as the
   "Open Grafana" link.
+
+## Power Automate setup
+
+Steps:
+
+1. Create an automated flow with the trigger **When an HTTP request is received**.
+2. Add **Parse JSON** and use the Alertmanager schema (from your payload or
+   `alertmanager-json-schema.json` if you have it).
+3. Add **Post adaptive card in a chat or channel** (or Teams workflow action).
+4. In the Adaptive Card JSON field, paste the contents of `adaptive-card.json`.
+5. Save and copy the generated webhook URL into Alertmanager.
+
+## Power Automate Adaptive Card template
+
+Use this JSON in the Adaptive Card action after a `Parse JSON` step that parses
+the Alertmanager webhook payload:
+
+```json
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.5",
+        "msteams": {
+          "width": "Full"
+        },
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "@{coalesce(first(body('Parse_JSON')?['alerts'])?['annotations']?['summary'], first(body('Parse_JSON')?['alerts'])?['labels']?['alertname'], 'Alert')}",
+            "weight": "Bolder",
+            "size": "Large",
+            "wrap": true
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "Severity",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['labels']?['severity']}"
+              },
+              {
+                "title": "Rule",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['labels']?['alertname']}"
+              },
+              {
+                "title": "Namespace",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['labels']?['namespace']}"
+              },
+              {
+                "title": "Starts at",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['startsAt']}"
+              },
+              {
+                "title": "Value",
+                "value": "@{first(body('Parse_JSON')?['alerts'])?['annotations']?['value']}"
+              }
+            ]
+          },
+          {
+            "type": "TextBlock",
+            "text": "Summary: @{first(body('Parse_JSON')?['alerts'])?['annotations']?['description']}",
+            "wrap": true,
+            "spacing": "Medium"
+          }
+        ],
+        "actions": [
+          {
+            "type": "Action.OpenUrl",
+            "title": "Open Grafana",
+            "url": "@{coalesce(first(body('Parse_JSON')?['alerts'])?['annotations']?['dashboard_url'], first(body('Parse_JSON')?['alerts'])?['generatorURL'], body('Parse_JSON')?['externalURL'])}"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+The same template is available in `adaptive-card.json`.
